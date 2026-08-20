@@ -1,0 +1,19 @@
+Rows: 891  Cols: 20 
+Survival rate overall: 38.4 %
+
+Survival by class:
+     
+        No  Yes
+  1st 37.0 63.0
+  2nd 52.7 47.3
+  3rd 75.8 24.2
+
+Survival by sex:
+        
+           No  Yes
+  male   81.1 18.9
+  female 25.8 74.2
+
+Avg fare by class:
+     1st      2nd      3rd 
+84.15469 20.66218 13.67555 
