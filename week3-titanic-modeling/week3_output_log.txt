@@ -1,0 +1,158 @@
+========== 1. NORMALITY TEST (Shapiro-Wilk) on Age & Fare ==========
+
+	Shapiro-Wilk normality test
+
+data:  df$Age
+W = 0.9541, p-value = 4.651e-16
+
+
+	Shapiro-Wilk normality test
+
+data:  df$Fare_Capped
+W = 0.60126, p-value < 2.2e-16
+
+Interpretation: p-value < 0.05 for both => reject normality => Age and Fare
+are NOT normally distributed (expected, Fare is right-skewed, Age has an
+imputation spike). This is why non-parametric/robust checks are also used below.
+
+========== 2. HYPOTHESIS TEST 1: Does Sex affect survival? (Chi-square) ==========
+H0: Survival is independent of Sex
+H1: Survival depends on Sex
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  tab_sex
+X-squared = 260.72, df = 1, p-value < 2.2e-16
+
+p-value is far below 0.05 => reject H0 => Sex is significantly associated with survival.
+
+========== 3. HYPOTHESIS TEST 2: Does Pclass affect survival? (Chi-square) ==========
+H0: Survival is independent of Pclass
+H1: Survival depends on Pclass
+
+	Pearson's Chi-squared test
+
+data:  tab_class
+X-squared = 102.89, df = 2, p-value < 2.2e-16
+
+p-value is far below 0.05 => reject H0 => Passenger class is significantly associated with survival.
+
+========== 4. HYPOTHESIS TEST 3: Do survivors and non-survivors differ in Age? (t-test) ==========
+H0: Mean age of survivors = mean age of non-survivors
+H1: Means differ
+
+	Welch Two Sample t-test
+
+data:  Age by Survived
+t = 1.8966, df = 671.15, p-value = 0.05831
+alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+95 percent confidence interval:
+ -0.06126264  3.53486344
+sample estimates:
+mean in group 0 mean in group 1 
+       30.02823        28.29143 
+
+p-value ~ 0.0583 ->  no significant difference 
+
+========== 5. HYPOTHESIS TEST 4: Do survivors and non-survivors differ in Fare? (t-test) ==========
+H0: Mean fare of survivors = mean fare of non-survivors
+H1: Means differ
+
+	Welch Two Sample t-test
+
+data:  Fare_Capped by Survived
+t = -7.5428, df = 487.38, p-value = 2.27e-13
+alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+95 percent confidence interval:
+ -30.07366 -17.64361
+sample estimates:
+mean in group 0 mean in group 1 
+       22.06691        45.92554 
+
+p-value ~ 2.27e-13 ->  significant difference in fare 
+
+========== 6. CORRELATION CHECK (numeric predictors) ==========
+            Survived   Age Fare_Capped SibSp Parch
+Survived        1.00 -0.06        0.27 -0.04  0.08
+Age            -0.06  1.00        0.10 -0.23 -0.17
+Fare_Capped     0.27  0.10        1.00  0.19  0.25
+SibSp          -0.04 -0.23        0.19  1.00  0.41
+Parch           0.08 -0.17        0.25  0.41  1.00
+
+========== 7. TRAIN/TEST SPLIT (80/20, stratified) ==========
+Train rows: 714  Test rows: 177 
+Train survival rate: 0.384  Test survival rate: 0.384 
+
+========== 8. MODEL BUILDING: Logistic Regression with 10-fold Cross-Validation ==========
+Generalized Linear Model 
+
+714 samples
+  7 predictor
+  2 classes: 'No', 'Yes' 
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 643, 642, 642, 642, 643, 643, ... 
+Resampling results:
+
+  ROC        Sens       Spec     
+  0.8473365  0.8636364  0.6936508
+
+
+Final model coefficients:
+                Estimate  Std. Error    z value     Pr(>|z|)
+(Intercept)  1.374010909 0.481960791  2.8508769 4.359884e-03
+Pclass2nd   -0.901795084 0.345940315 -2.6067938 9.139437e-03
+Pclass3rd   -2.173529299 0.352373078 -6.1682615 6.904488e-10
+Sexfemale    2.665056203 0.222181708 11.9949398 3.776919e-33
+Age         -0.040043070 0.008688388 -4.6088030 4.049939e-06
+Fare_Capped  0.001803742 0.003494812  0.5161199 6.057707e-01
+SibSp       -0.326708889 0.119089126 -2.7433982 6.080690e-03
+Parch       -0.105302999 0.127246708 -0.8275499 4.079255e-01
+EmbarkedQ   -0.143295236 0.432155010 -0.3315830 7.402042e-01
+EmbarkedS   -0.406503774 0.264255275 -1.5382996 1.239754e-01
+
+========== 9. TEST SET EVALUATION ==========
+Confusion Matrix and Statistics
+
+          Reference
+Prediction  No Yes
+       No  101  23
+       Yes   8  45
+                                          
+               Accuracy : 0.8249          
+                 95% CI : (0.7607, 0.8778)
+    No Information Rate : 0.6158          
+    P-Value [Acc > NIR] : 1.304e-09       
+                                          
+                  Kappa : 0.6138          
+                                          
+ Mcnemar's Test P-Value : 0.01192         
+                                          
+            Sensitivity : 0.6618          
+            Specificity : 0.9266          
+         Pos Pred Value : 0.8491          
+         Neg Pred Value : 0.8145          
+             Prevalence : 0.3842          
+         Detection Rate : 0.2542          
+   Detection Prevalence : 0.2994          
+      Balanced Accuracy : 0.7942          
+                                          
+       'Positive' Class : Yes             
+                                          
+
+Test set AUC: 0.8662 
+
+========== 10. VARIABLE IMPORTANCE ==========
+glm variable importance
+
+            Overall
+Sexfemale   100.000
+Pclass3rd    50.043
+Age          36.672
+SibSp        20.679
+Pclass2nd    19.507
+EmbarkedS    10.346
+Parch         4.252
+Fare_Capped   1.582
+EmbarkedQ     0.000
